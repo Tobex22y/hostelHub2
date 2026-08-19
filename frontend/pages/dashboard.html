@@ -1,0 +1,1476 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — HostelHub</title>
+  <link rel="stylesheet" href="../assets/css/paystack.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+    :root {
+      --primary: #15803d;
+      --primary-dark: #14532d;
+      --primary-light: #f0fdf4;
+      --gold: #d4af37;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+      --shadow-md: 0 4px 12px rgba(15,23,42,.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+
+    /* ── SIDEBAR (identical to dashboard.html) ── */
+    .sidebar {
+      width: 240px;
+      min-height: 100vh;
+      background: var(--primary-dark);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 40;
+      transition: transform 0.25s;
+    }
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-brand .logo_container { display: flex; align-items: center; gap: 10px; }
+    .sidebar-brand img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
+    .sidebar-brand p {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700; font-size: 1.1rem;
+      color: white;
+    }
+    .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+      color: rgba(255,255,255,.35); padding: 10px 12px 4px; margin-top: 6px;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+      color: rgba(255,255,255,.72); font-size: 13.5px; font-weight: 500; text-decoration: none;
+      transition: background 0.15s, color 0.15s; cursor: pointer; border: none; background: none;
+      width: 100%; text-align: left;
+    }
+    .nav-link:hover { background: rgba(255,255,255,.1); color: white; }
+    .nav-link.active { background: rgba(255,255,255,.15); color: white; font-weight: 600; }
+    .nav-link .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-link.nav-epass {
+      background: rgba(212,175,55,.12); color: var(--gold);
+      border: 1px solid rgba(212,175,55,.25); margin-top: 4px;
+    }
+    .nav-link.nav-epass:hover { background: rgba(212,175,55,.22); color: #f0c040; border-color: rgba(212,175,55,.45); }
+    .nav-link.nav-epass .nav-icon { color: var(--gold); }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.1); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── TOPBAR (identical to dashboard.html) ── */
+    .topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 30; box-shadow: var(--shadow);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-left img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
+    .topbar-left h3 { font-size: 14px; font-weight: 600; color: var(--text); }
+    .topbar-left p  { font-size: 12px; color: var(--muted); }
+    .btn-logout {
+      padding: 8px 16px; background: #fef2f2; color: var(--danger); border: 1px solid #fecaca;
+      border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-logout:hover { background: #fee2e2; }
+
+    /* ── PAGE BODY ── */
+    .page-body { padding: 28px; flex: 1; }
+    .page-header { margin-bottom: 22px; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+    .page-header p { color: var(--muted); font-size: 14px; }
+
+    .filter-banner {
+      display: none;
+      background: var(--primary-light); border: 1px solid #bbf7d0; color: var(--primary-dark);
+      padding: 10px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 18px;
+    }
+    .filter-banner a { color: var(--primary); font-weight: 600; text-decoration: underline; }
+
+    .loading-text { color: var(--muted); font-size: 14px; text-align: center; padding: 40px 0; grid-column: 1/-1; }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: var(--primary);
+      border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--gold));
+    }
+
+    .stat-card h3 { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+    .stat-card p  { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text); }
+
+    /* ── GRID ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-header h2 { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .panel-header p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ── OCCUPANCY BAR ── */
+    .occ-card {
+      background: var(--primary-light);
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .occ-card h4 { font-size: 12px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+
+    .occ-bar-wrap { display: flex; align-items: center; gap: 10px; }
+
+    .occ-track {
+      flex: 1; height: 10px;
+      background: rgba(21,128,61,.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .occ-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--primary);
+      transition: width .7s ease;
+    }
+
+    .occ-pct { font-size: 13px; font-weight: 700; color: var(--text); min-width: 38px; text-align: right; }
+    .occ-updated { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+    /* ── HALL CARDS ── */
+    .hall-card {
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s;
+    }
+
+    .hall-card:hover { background: var(--primary-light); }
+    .hall-card:last-child { margin-bottom: 0; }
+    .hall-card-info h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .hall-card-info p  { font-size: 12px; color: var(--muted); }
+
+    .hall-badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+    .hbadge {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .hbadge.avail { background: #dcfce7; color: #15803d; }
+    .hbadge.occup { background: #fee2e2; color: #991b1b; }
+
+    .btn-view-rooms {
+      padding: 7px 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .15s;
+    }
+    .btn-view-rooms:hover { opacity: .88; }
+
+    /* ── ALLOCATION SIDE PANEL ── */
+    #allocationBox { min-height: 140px; }
+
+    .alloc-empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .alloc-empty .alloc-icon { font-size: 36px; margin-bottom: 10px; }
+    .alloc-empty p { font-size: 13px; margin-bottom: 14px; }
+
+    .btn-book-now {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: opacity .15s;
+    }
+    .btn-book-now:hover { opacity: .9; }
+
+    /* ── RECEIPT + EPASS BTN SECTION ── */
+    #receipt-section { margin-top: 12px; display: none; }
+
+    .btn-receipt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 11px 16px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      justify-content: center;
+      transition: background .15s;
+      margin-bottom: 8px;
+    }
+    .btn-receipt:hover { background: #d1fae5; }
+
+    /* ── VIEW EPASS BUTTON (inside allocation panel) ── */
+    .btn-epass-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 11px 16px;
+      background: linear-gradient(135deg, var(--primary-dark), #1a6b3c);
+      color: var(--gold);
+      border: 1px solid rgba(212,175,55,.35);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      justify-content: center;
+      transition: opacity .15s;
+    }
+    .btn-epass-inline:hover { opacity: .88; }
+
+    /* ── ROOM MODAL ── */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.45);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal.open { display: flex; }
+
+    .modal-content {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 28px;
+      width: 460px;
+      max-height: 82vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 48px rgba(15,23,42,.18);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 { font-size: 1.1rem; }
+    .modal-close { background: none; border: none; font-size: 22px; color: var(--muted); cursor: pointer; line-height: 1; }
+    .modal-close:hover { color: var(--text); }
+
+    /* ══════════════════════════════════════════════
+       PRINT — used by "Save Pass" (window.print()) and
+       "Print Allocation Receipt". Without this, the browser
+       prints the entire dashboard behind the modal instead
+       of just the pass/receipt.
+    ══════════════════════════════════════════════ */
+    @media print {
+      body * { visibility: hidden; }
+      #epassModal, #epassModal * { visibility: visible; }
+      #epassModal {
+        position: absolute;
+        inset: 0;
+        background: #fff;
+        padding: 0;
+        display: flex;
+      }
+      #epassModal .modal-content { box-shadow: none; }
+      .epass-actions,
+      .epass-close-btn { display: none !important; }
+    }
+
+    /* ══════════════════════════════════════════════
+       E-PASS MODAL
+    ══════════════════════════════════════════════ */
+    #epassModal .modal-content {
+      width: 420px;
+      padding: 0;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    /* PASS CARD INNER */
+    .epass-card { border-radius: 0; }
+
+    .epass-header {
+      background: var(--primary-dark);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .epass-header-left { display: flex; align-items: center; gap: 10px; }
+    .epass-header-logo {
+      width: 30px; height: 30px;
+      background: var(--gold);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 13px;
+      color: var(--primary-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .epass-header-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; color: var(--gold); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .epass-header-badge {
+      background: rgba(212,175,55,.18);
+      border: 1px solid rgba(212,175,55,.4);
+      border-radius: 5px;
+      padding: 3px 8px;
+      font-size: 9px; font-weight: 700; color: var(--gold);
+      letter-spacing: 0.5px;
+    }
+    .epass-close-btn {
+      background: rgba(255,255,255,.1);
+      border: none; border-radius: 6px;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: rgba(255,255,255,.7);
+      cursor: pointer; transition: background .15s;
+    }
+    .epass-close-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+    /* GOLD STRIPE */
+    .gold-stripe { height: 3px; background: var(--gold); }
+
+    /* IDENTITY ROW */
+    .epass-identity {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid #f0f4f0;
+    }
+
+    .epass-photo {
+      width: 68px; height: 68px;
+      border-radius: 10px;
+      border: 2.5px solid var(--primary);
+      background: #e8f5ee;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .epass-photo img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .epass-photo-placeholder { font-size: 26px; color: #a8d5b5; }
+
+    .epass-name { font-size: 15px; font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 3px; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .epass-matric { font-size: 11px; color: var(--muted); font-family: monospace; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.3px; }
+    .epass-status-badge {
+      display: inline-flex;
+      align-items: center; gap: 5px;
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 10px; font-weight: 700; color: #15803d;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #15803d;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* TILES GRID */
+    .epass-tiles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f0f4f0;
+    }
+
+    .epass-tile {
+      border-radius: 10px;
+      padding: 11px 13px;
+    }
+
+    .epass-tile.green {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    .epass-tile.gold {
+      background: #fefce8;
+      border: 1px solid #fde68a;
+    }
+
+    .epass-tile-label {
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .epass-tile.green .epass-tile-label { color: #166534; }
+    .epass-tile.gold  .epass-tile-label { color: #854d0e; }
+
+    .epass-tile-value {
+      font-size: 19px;
+      font-weight: 800;
+      line-height: 1;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .epass-tile.green .epass-tile-value { color: var(--primary-dark); }
+    .epass-tile.gold  .epass-tile-value { color: #92400e; }
+
+    .epass-tile-sub { font-size: 9px; color: var(--muted); margin-top: 3px; }
+
+    /* QR SECTION */
+    .epass-qr-section {
+      padding: 16px 20px;
+      text-align: center;
+      background: #fafdf9;
+      border: 1px dashed #bbf7d0;
+      margin: 12px 20px;
+      border-radius: 12px;
+    }
+
+    .epass-qr-wrap {
+      display: inline-block;
+      background: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    #epass-qr canvas, #epass-qr img { display: block; }
+
+    .epass-qr-caption { font-size: 11px; color: var(--primary); font-weight: 600; margin-bottom: 2px; }
+    .epass-qr-exp { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+
+    /* PASS FOOTER */
+    .epass-foot {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #f0fdf4;
+      border-top: 1px solid #dcfce7;
+    }
+    .epass-foot-txt { font-size: 8.5px; font-weight: 700; letter-spacing: 0.8px; color: var(--primary); text-transform: uppercase; }
+
+    /* PASS ACTION BUTTONS */
+    .epass-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 20px 20px;
+    }
+
+    .epass-btn {
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: opacity .15s;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .epass-btn:hover { opacity: .87; }
+
+    .epass-btn-receipt {
+      background: #f0fdf4;
+      color: var(--primary-dark);
+      border: 1px solid #bbf7d0;
+    }
+    .epass-btn-save {
+      background: var(--primary-dark);
+      color: var(--gold);
+    }
+
+    /* NO ALLOCATION STATE IN EPASS */
+    .epass-empty {
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .epass-empty-icon { font-size: 44px; margin-bottom: 12px; }
+    .epass-empty-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .epass-empty-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+    .epass-btn-apply {
+      display: inline-block;
+      padding: 11px 24px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ── LOADING SPINNER ── */
+    .epass-loading {
+      padding: 60px 24px;
+      text-align: center;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #bbf7d0;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .page-body { padding: 16px; }
+      #epassModal .modal-content { width: 100%; border-radius: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo_container">
+        <img src="../assets/images/bouestilogo.png" alt="BOUESTI" id="logo" />
+        <p>HostelHub</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a class="nav-link active" href="dashboard.html" id="nav-dashboard-link">
+        <i class="fa-solid fa-home nav-icon"></i> Dashboard
+      </a>
+      <a class="nav-link" href="room.html">
+        <i class="fa-solid fa-bed nav-icon"></i> Book Bed
+      </a>
+      <a class="nav-link" href="allocation.html">
+        <i class="fa-solid fa-list nav-icon"></i> Allocation
+      </a>
+      <a class="nav-link" href="payments.html">
+        <i class="fa-solid fa-credit-card nav-icon"></i> Payments
+      </a>
+
+
+      <!-- MY PASS -->
+      <!-- Only shown when the student has an active/paid allocation —
+           toggled in app.js loadDashboard() via an if statement. -->
+      <div class="nav-section-label" id="nav-epass-label" style="display:none;">My Pass</div>
+      <button class="nav-link nav-epass" id="nav-epass-link" onclick="openEpass()" style="display:none;">
+        <i class="fa-solid fa-id-card nav-icon"></i> My Pass
+      </button>
+
+      <!-- SUPPORT -->
+      <div class="nav-section-label">Support</div>
+      <button class="nav-link" id="nav-maintenance" onclick="showSection('maintenance')">
+        <i class="fa-solid fa-screwdriver-wrench nav-icon"></i> Maintenance
+      </button>
+
+      <!-- ACCOUNT -->
+      <div class="nav-section-label">Account</div>
+      <a class="nav-link" href="profile.html">
+        <i class="fa-solid fa-user nav-icon"></i> Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-link" style="width:100%;background:rgba(239,68,68,.12);color:#fca5a5;border:none;" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket nav-icon"></i> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <img id="studentAvatar"
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+          alt="Avatar" />
+        <div>
+          <h3 id="welcomeName">Welcome, Student</h3>
+          <p>BOUESTI Hostel Portal</p>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Page body -->
+    <div class="page-body">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <i class="fa-solid fa-door-open" style="color:var(--primary);font-size:18px;margin-bottom:8px;display:block;"></i>
+          <h3>Room Status</h3>
+          <p id="roomStatus">Loading…</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-credit-card" style="color:var(--primary);font-size:18px;margin-bottom:8px;display:block;"></i>
+          <h3>Payment</h3>
+          <p id="paymentStatus">Loading…</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-building" style="color:var(--primary);font-size:18px;margin-bottom:8px;display:block;"></i>
+          <h3>Hall Block</h3>
+          <p id="hostelBlock">--</p>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-bed" style="color:var(--primary);font-size:18px;margin-bottom:8px;display:block;"></i>
+          <h3>Bed Number</h3>
+          <p id="bedNumber">--</p>
+        </div>
+      </div>
+
+      <!-- Content grid -->
+      <div class="content-grid">
+
+        <!-- Halls overview -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Halls Overview</h2>
+              <p>Live availability across all blocks</p>
+            </div>
+          </div>
+
+          <div class="occ-card">
+            <h4>Overall Occupancy</h4>
+            <div class="occ-bar-wrap">
+              <div class="occ-track">
+                <div class="occ-fill" id="pub-occ-bar" style="width:0%"></div>
+              </div>
+              <div class="occ-pct" id="pub-occ-pct">0%</div>
+            </div>
+            <p class="occ-updated" id="last-updated">Loading…</p>
+          </div>
+
+          <div id="hallsContainer">
+            <p style="color:var(--muted);font-size:14px;text-align:center;padding:30px 0;">Loading halls…</p>
+          </div>
+        </div>
+
+        <!-- Allocation side panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>My Allocation</h2>
+              <p>Your bed space details</p>
+            </div>
+          </div>
+          <div id="allocationBox">
+            <p style="color:var(--muted);font-size:14px;text-align:center;padding:30px 0;">Loading…</p>
+          </div>
+
+          <div id="receipt-section">
+            <button class="btn-receipt" onclick="printReceipt()">
+              <i class="fa-solid fa-print"></i> Print Allocation Receipt
+            </button>
+            <button class="btn-epass-inline" onclick="openEpass()">
+              <i class="fa-solid fa-id-card"></i> View My E-Hostel Pass
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /content-grid -->
+
+      <!-- ══════════════════════════════════════
+           MAINTENANCE SECTION (hidden by default)
+      ══════════════════════════════════════ -->
+      <div id="section-maintenance" style="display:none;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+          <!-- SUBMIT TICKET FORM -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2><i class="fa-solid fa-screwdriver-wrench" style="color:var(--primary);margin-right:6px;"></i>Report an Issue</h2>
+                <p>Submit a maintenance request to the hostel admin</p>
+              </div>
+            </div>
+
+            <div id="ticket-success" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;font-weight:600;">
+              <i class="fa-solid fa-circle-check"></i> Ticket submitted! Admin will respond shortly.
+            </div>
+            <div id="ticket-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;"></div>
+
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">Category</label>
+                <select id="t-category" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);">
+                  <option value="electrical">Electrical</option>
+                  <option value="plumbing">Plumbing</option>
+                  <option value="furniture">Furniture</option>
+                  <option value="cleaning">Cleaning</option>
+                  <option value="internet">Internet / Network</option>
+                  <option value="security">Security</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">Issue Title</label>
+                <input id="t-title" type="text" placeholder="e.g. Faulty ceiling fan in room" maxlength="120"
+                  style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;" />
+              </div>
+
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">Description</label>
+                <textarea id="t-description" rows="3" placeholder="Describe the problem in detail..."
+                  style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+              </div>
+
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">Location</label>
+                <input id="t-location" type="text" placeholder="e.g. Hall C2, Room C2-04, Bed 2"
+                  style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;" />
+              </div>
+
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">Priority</label>
+                <select id="t-priority" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);">
+                  <option value="low">Low — Not urgent</option>
+                  <option value="medium" selected>Medium — Needs attention soon</option>
+                  <option value="high">High — Affecting daily life</option>
+                  <option value="urgent">Urgent — Immediate danger / safety</option>
+                </select>
+              </div>
+
+              <button onclick="submitTicket()" id="submit-ticket-btn"
+                style="width:100%;padding:12px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;">
+                <i class="fa-solid fa-paper-plane"></i> Submit Ticket
+              </button>
+            </div>
+          </div>
+
+          <!-- MY TICKETS LIST -->
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2><i class="fa-solid fa-ticket" style="color:var(--primary);margin-right:6px;"></i>My Tickets</h2>
+                <p>Track your submitted maintenance requests</p>
+              </div>
+              <button onclick="loadMyTickets()" style="background:var(--primary-light);color:var(--primary);border:1px solid #bbf7d0;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
+                <i class="fa-solid fa-rotate"></i> Refresh
+              </button>
+            </div>
+            <div id="tickets-list" style="max-height:520px;overflow-y:auto;">
+              <p style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0;">Loading your tickets…</p>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /section-maintenance -->
+
+    </div><!-- /page-body -->
+  </div><!-- /main -->
+
+  <!-- ════════════════════════════════════
+       ROOM MODAL (existing)
+  ════════════════════════════════════ -->
+  <div id="roomModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Room Beds</h2>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div id="modalBeds">Loading beds…</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       E-PASS MODAL (new)
+  ════════════════════════════════════ -->
+  <div id="epassModal" class="modal" onclick="handleEpassOverlayClick(event)">
+    <div class="modal-content">
+
+      <!-- Loading state -->
+      <div id="epass-loading" class="epass-loading">
+        <div class="spinner"></div>
+        <p style="font-size:13px;color:var(--muted);">Loading your hostel pass…</p>
+      </div>
+
+      <!-- Pass content (hidden until data loads) -->
+      <div id="epass-content" style="display:none;">
+
+        <!-- Header -->
+        <div class="epass-header">
+          <div class="epass-header-left">
+            <div class="epass-header-logo">B</div>
+            <span class="epass-header-title">E-HOSTEL PASS</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="epass-header-badge" id="epass-session-badge">BOUESTI</span>
+            <button class="epass-close-btn" onclick="closeEpass()">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+        <div class="gold-stripe"></div>
+
+        <!-- Identity -->
+        <div class="epass-identity">
+          <div class="epass-photo" id="epass-photo-wrap">
+            <img id="epass-photo-img" src="" alt="Student Photo" />
+            <span class="epass-photo-placeholder" id="epass-photo-placeholder">
+              <i class="fa-solid fa-user" style="font-size:26px;color:#a8d5b5;"></i>
+            </span>
+          </div>
+          <div>
+            <div class="epass-name" id="epass-fullname">—</div>
+            <div class="epass-matric" id="epass-matric">MATRIC: —</div>
+            <span class="epass-status-badge">
+              <span class="status-dot"></span> ACTIVE
+            </span>
+          </div>
+        </div>
+
+        <!-- 4 Tiles -->
+        <div class="epass-tiles">
+          <div class="epass-tile green">
+            <div class="epass-tile-label">Hall</div>
+            <div class="epass-tile-value" id="epass-hall">—</div>
+            <div class="epass-tile-sub">Hall of Residence</div>
+          </div>
+          <div class="epass-tile gold">
+            <div class="epass-tile-label">Room No.</div>
+            <div class="epass-tile-value" id="epass-room">—</div>
+            <div class="epass-tile-sub" id="epass-room-type">Standard Room</div>
+          </div>
+          <div class="epass-tile gold">
+            <div class="epass-tile-label">Bed Space</div>
+            <div class="epass-tile-value" id="epass-bed">—</div>
+            <div class="epass-tile-sub">Assigned Space</div>
+          </div>
+          <div class="epass-tile green">
+            <div class="epass-tile-label">Block</div>
+            <div class="epass-tile-value" id="epass-block">—</div>
+            <div class="epass-tile-sub">Hall Block</div>
+          </div>
+        </div>
+
+        <!-- QR Code -->
+        <div class="epass-qr-section">
+          <div class="epass-qr-wrap">
+            <div id="epass-qr"></div>
+          </div>
+          <div class="epass-qr-caption">Scan for allocation verification</div>
+          <div class="epass-qr-exp" id="epass-qr-expires">EXPIRES: —</div>
+        </div>
+
+        <!-- Pass Footer -->
+        <div class="epass-foot">
+          <span class="epass-foot-txt">INSTITUTION CAMPUS</span>
+          <span class="epass-foot-txt">OFFICIAL ID</span>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="epass-actions">
+          <button class="epass-btn epass-btn-receipt" onclick="printReceipt()">
+            <i class="fa-solid fa-receipt"></i> View Receipt
+          </button>
+          <button class="epass-btn epass-btn-save" onclick="downloadEpass()">
+            <i class="fa-solid fa-download"></i> Save Pass
+          </button>
+        </div>
+
+      </div><!-- /epass-content -->
+
+      <!-- No allocation state -->
+      <div id="epass-empty" style="display:none;">
+        <div class="epass-header">
+          <div class="epass-header-left">
+            <div class="epass-header-logo">B</div>
+            <span class="epass-header-title">E-HOSTEL PASS</span>
+          </div>
+          <button class="epass-close-btn" onclick="closeEpass()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="gold-stripe"></div>
+        <div class="epass-empty">
+          <div class="epass-empty-icon"><i class="fa-solid fa-house"></i></div>
+          <div class="epass-empty-title">No Active Allocation</div>
+          <div class="epass-empty-desc">You don't have a confirmed hostel allocation yet. Complete your payment and bed space selection to get your E-Hostel Pass.</div>
+          <button class="epass-btn-apply" onclick="goToRooms(); closeEpass();">Apply for Accommodation</button>
+        </div>
+      </div>
+
+    </div><!-- /modal-content -->
+  </div><!-- /epassModal -->
+
+  <script src="../config.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/qrcode.min.js"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+
+  <script>
+  /* ════════════════════════════════════════════════════════
+     E-PASS MODAL LOGIC
+     Reads from the same API endpoint your app.js already
+     uses for allocation data, then populates the pass.
+  ════════════════════════════════════════════════════════ */
+
+  let epassQrGenerated = false;  // only generate QR once
+
+  function openEpass() {
+    const modal = document.getElementById('epassModal');
+    modal.classList.add('open');
+    loadEpassData();
+  }
+
+  function closeEpass() {
+    document.getElementById('epassModal').classList.remove('open');
+  }
+
+  // Close modal when clicking the dark overlay (not the card itself)
+  function handleEpassOverlayClick(e) {
+    if (e.target === document.getElementById('epassModal')) closeEpass();
+  }
+
+  // Close with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeEpass();
+      closeModal(); // also close room modal if open
+    }
+  });
+
+  async function loadEpassData() {
+    show('epass-loading');
+    hide('epass-content');
+    hide('epass-empty');
+
+    try {
+      // Uses the same dashboard.php endpoint that app.js already calls —
+      // it returns student, allocation, payment, and halls_summary together.
+      const res = await fetch(CONFIG.API_BASE_URL + '/auth/dashboard.php', {
+        credentials: 'include'
+      });
+
+      if (!res.ok) throw new Error('Network error ' + res.status);
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.message || 'Not logged in');
+
+      // Need both a paid/active allocation AND a payment record.
+      // dashboard.php returns payment_reference/created_at *inside* allocation,
+      // not as a separate top-level "payment" object.
+      const alloc   = data.allocation;
+      const payment = alloc
+        ? { reference: alloc.payment_reference, created_at: alloc.created_at }
+        : {};
+
+      if (!alloc || !['paid','active','approved'].includes(alloc.status)) {
+        show('epass-empty');
+        hide('epass-loading');
+        return;
+      }
+
+      // Attach payment onto data so populateEpass() actually sees the real
+      // payment_reference instead of always falling back to ALLOC-<id>.
+      data.payment = payment;
+
+      populateEpass(data);
+
+    } catch (err) {
+      console.warn('E-Pass fetch error:', err);
+      // Fallback: read values app.js already put in the DOM
+      const fallback = readEpassFromDom();
+      if (fallback) {
+        populateEpass(fallback);
+      } else {
+        show('epass-empty');
+      }
+    } finally {
+      hide('epass-loading');
+    }
+  }
+
+  function populateEpass(data) {
+    const student = data.student   || {};
+    const alloc   = data.allocation || {};
+    const payment = data.payment   || {};
+
+    // ── Student fields (from auth/dashboard.php → students table) ──
+    const fullname = (student.fullname      || '').toUpperCase();
+    const matric   = (student.matric_number || '').toUpperCase();
+
+    // Photo is stored as a filename in backend/uploads/profiles/
+    // Build the full accessible URL
+    const photoFile = student.profile_image || '';
+    const photoUrl  = photoFile
+      ? 'http://localhost/HostelHub-main/backend/uploads/profiles/' + encodeURIComponent(photoFile)
+      : '';
+
+    // ── Allocation fields (dashboard.php now joins rooms + bedspaces) ──
+    const room     = alloc.room_number || '—';
+    const roomType = alloc.room_type   || 'Standard Room';
+    const bed      = alloc.bed_number  || '—';
+
+    // Hall: use explicit hall column first, then fall back to parsing room_number
+    let hallId = (alloc.hall || '').trim().toUpperCase();
+    if (!hallId && room !== '—') {
+      const m = room.match(/^([A-Za-z]+[0-9]*)/);
+      hallId = m ? m[1].toUpperCase() : room.charAt(0).toUpperCase();
+    }
+    const hall  = hallId ? 'Hall ' + hallId : '—';
+    const block = hallId || '—';
+
+    // ── Payment fields ──
+    // payment_reference can be NULL in the DB if it was never written for
+    // this allocation (e.g. approved manually, or only ever set by a
+    // payment webhook). Fall back to the allocation id so the QR still
+    // renders — but note this fallback ref won't match a real payment
+    // record, so verify_pass.php / receipt.php need to handle it, or the
+    // real fix is to backfill payment_reference in the database.
+    const refCode  = payment.reference || (alloc.id ? ('ALLOC-' + alloc.id) : '');
+    const payDate  = payment.created_at || '';
+    if (!payment.reference && alloc.id) {
+      console.warn('E-Pass: no payment_reference in DB for allocation', alloc.id, '— using fallback ref. Receipt/QR verification will not find a real payment record until this is backfilled.');
+    }
+
+    // ── Fill the DOM ──
+    setText('epass-fullname',     fullname || 'STUDENT NAME');
+    setText('epass-matric',       'MATRIC: ' + (matric || '—'));
+    setText('epass-hall',         hall);
+    setText('epass-room',         room);
+    setText('epass-room-type',    roomType);
+    setText('epass-bed',          bed);
+    setText('epass-block',        block);
+    setText('epass-session-badge', 'BOUESTI ' + getCurrentSession());
+
+    const expYear = payDate ? new Date(payDate.replace(/-/g,'/')).getFullYear() : new Date().getFullYear();
+    setText('epass-qr-expires', 'EXPIRES: 31 DEC ' + expYear);
+
+    // ── Photo ──
+    if (photoUrl) {
+      const img = document.getElementById('epass-photo-img');
+      if (img) {
+        img.src = photoUrl;
+        img.style.display = 'block';
+        hide('epass-photo-placeholder');
+        img.onerror = function() {
+          this.style.display = 'none';
+          show('epass-photo-placeholder');
+        };
+      }
+    }
+
+    // ── QR Code (generate only once per open) ──
+    if (!epassQrGenerated && refCode && matric) {
+      const qrUrl = 'http://localhost/HostelHub-main/backend/api/student/verify_pass.php'
+                  + '?ref='    + encodeURIComponent(refCode)
+                  + '&matric=' + encodeURIComponent(matric);
+      const qrEl = document.getElementById('epass-qr');
+      if (qrEl) {
+        qrEl.innerHTML = '';
+        try {
+          if (typeof QRCode === 'undefined') {
+            throw new Error('QRCode library did not load — check the <script src="../assets/js/qrcode.min.js"> tag / path');
+          }
+          new QRCode(qrEl, {
+            text:         qrUrl,
+            width:        130,
+            height:       130,
+            colorDark:    '#14532d',
+            colorLight:   '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+          epassQrGenerated = true;
+        } catch(e) {
+          console.error('E-Pass QR generation failed:', e);
+          qrEl.innerHTML = '<div style="width:130px;height:130px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#64748b;text-align:center;">QR unavailable</div>';
+        }
+      }
+    } else if (!epassQrGenerated) {
+      console.warn('E-Pass QR skipped — missing data:', { refCode, matric, allocId: alloc.id });
+    }
+
+    // Store ref for receipt button
+    if (refCode) window._epassRef = refCode;
+
+    show('epass-content');
+  }
+
+  /* Fallback: read values that app.js already put into the DOM */
+  function readEpassFromDom() {
+    const block = document.getElementById('hostelBlock')?.textContent?.trim();
+    const bed   = document.getElementById('bedNumber')?.textContent?.trim();
+    const name  = document.getElementById('welcomeName')?.textContent?.replace('Welcome, ','').trim();
+    if (!block || block === '--') return null;
+    return {
+      student:    { fullname: name, matric_number: '', photo: '' },
+      allocation: { room_number: block, bed_number: bed, hall_name: 'Hall ' + block.charAt(0) },
+      payment:    { reference: '', created_at: '' }
+    };
+  }
+
+  /* ── SAVE PASS (PDF via backend/api/student/epass.php + TCPDF) ──
+     NOTE: epass.php's exact expected parameter name and response format
+     haven't been confirmed yet — this follows the same convention as
+     receipt.php (?reference=..., session-based auth, credentials:'include').
+     If epass.php expects something different (e.g. allocation_id instead
+     of reference, or returns JSON instead of a PDF blob), this will fall
+     back to window.print() and log a warning — check the console. */
+  async function downloadEpass() {
+    const ref = window._epassRef || '';
+    if (!ref) {
+      alert('Pass data is still loading — please try again in a moment.');
+      return;
+    }
+
+    const btn = document.querySelector('.epass-btn-save');
+    const originalHTML = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing…';
+    }
+
+    try {
+      const res = await fetch(
+        CONFIG.API_BASE_URL + '/student/epass.php?reference=' + encodeURIComponent(ref),
+        { credentials: 'include' }
+      );
+
+      if (!res.ok) throw new Error('epass.php returned ' + res.status);
+
+      const blob = await res.blob();
+
+      // If epass.php ever errors out but still returns 200 with a JSON
+      // error body, this catches that instead of "downloading" a broken file.
+      if (blob.type && blob.type.indexOf('application/json') !== -1) {
+        const text = await blob.text();
+        throw new Error('epass.php returned JSON instead of a PDF: ' + text);
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'E-Hostel-Pass.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.warn('E-Pass PDF download failed, falling back to browser print:', err);
+      window.print();
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+  }
+
+  /* Override printReceipt to use stored ref if available.
+     NOTE: this MUST be a function EXPRESSION assigned to window.printReceipt,
+     not a `function printReceipt(){...}` declaration. Function declarations
+     hoist to the top of the script block before any line runs, which means
+     `_origPrintReceipt` would end up capturing THIS function instead of
+     app.js's real one — causing infinite recursion when isRealRef is false. */
+  const _origPrintReceipt = window.printReceipt; // capture app.js's real version BEFORE overwriting
+  window.printReceipt = function () {
+    const ref = window._epassRef || '';
+    // Our synthetic "ALLOC-<id>" fallback (used only so the QR isn't blank)
+    // doesn't correspond to a real payment record, so don't send it to
+    // receipt.php — it would just 404 / show a blank receipt.
+    const isRealRef = ref && !ref.startsWith('ALLOC-');
+    if (isRealRef) {
+      window.open(CONFIG.API_BASE_URL + '/student/receipt.php?reference=' + encodeURIComponent(ref), '_blank');
+    } else if (_origPrintReceipt) {
+      _origPrintReceipt();
+    } else {
+      alert('No payment reference found for this allocation.');
+    }
+  };
+
+  /* Helpers */
+  function show(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  }
+  function hide(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  function getCurrentSession() {
+    const y = new Date().getFullYear();
+    return y + '/' + (y + 1);
+  }
+  </script>
+
+  <script>
+  /* ════════════════════════════════════════════════
+     MAINTENANCE TICKETING SYSTEM
+  ════════════════════════════════════════════════ */
+  const MAINT_API = CONFIG.API_BASE_URL + '/student';
+
+  // Show/hide dashboard sections
+  function showSection(section) {
+    const mainGrid = document.querySelector('.content-grid');
+    const statsRow = document.querySelector('.stats-row');
+    const maintSection = document.getElementById('section-maintenance');
+
+    if (section === 'maintenance') {
+      if (mainGrid) mainGrid.style.display = 'none';
+      if (statsRow) statsRow.style.display = 'none';
+      maintSection.style.display = 'block';
+      document.getElementById('nav-maintenance').classList.add('active');
+      document.getElementById('nav-dashboard-link')?.classList.remove('active');
+      loadMyTickets();
+      // Auto-fill location from allocation data
+      prefillLocation();
+    } else {
+      if (mainGrid) mainGrid.style.display = '';
+      if (statsRow) statsRow.style.display = '';
+      maintSection.style.display = 'none';
+      document.getElementById('nav-maintenance').classList.remove('active');
+      document.getElementById('nav-dashboard-link')?.classList.add('active');
+    }
+  }
+
+  function prefillLocation() {
+    const hall = document.getElementById('hostelBlock')?.textContent?.trim();
+    const bed  = document.getElementById('bedNumber')?.textContent?.trim();
+    const loc  = document.getElementById('t-location');
+    if (loc && hall && hall !== '--' && !loc.value) {
+      loc.value = `${hall}${bed && bed !== '--' ? ', Bed ' + bed : ''}`;
+    }
+  }
+
+  async function submitTicket() {
+    const btn  = document.getElementById('submit-ticket-btn');
+    const succ = document.getElementById('ticket-success');
+    const err  = document.getElementById('ticket-error');
+    succ.style.display = 'none';
+    err.style.display  = 'none';
+
+    const payload = {
+      category:    document.getElementById('t-category').value,
+      title:       document.getElementById('t-title').value.trim(),
+      description: document.getElementById('t-description').value.trim(),
+      location:    document.getElementById('t-location').value.trim(),
+      priority:    document.getElementById('t-priority').value,
+    };
+
+    if (!payload.title || !payload.description || !payload.location) {
+      err.textContent    = 'Please fill in all fields.';
+      err.style.display  = 'block';
+      return;
+    }
+
+    btn.disabled   = true;
+    btn.innerHTML  = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting…';
+
+    try {
+      const res  = await fetch(MAINT_API + '/submit_ticket.php', {
+        method:      'POST',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        succ.style.display = 'block';
+        document.getElementById('t-title').value       = '';
+        document.getElementById('t-description').value = '';
+        loadMyTickets();
+      } else {
+        err.textContent   = data.message || 'Submission failed.';
+        err.style.display = 'block';
+      }
+    } catch (e) {
+      err.textContent   = 'Network error. Please try again.';
+      err.style.display = 'block';
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Ticket';
+    }
+  }
+
+  async function loadMyTickets() {
+    const box = document.getElementById('tickets-list');
+    box.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0;"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</p>';
+
+    try {
+      const res  = await fetch(MAINT_API + '/my_tickets.php', { credentials: 'include' });
+      const data = await res.json();
+
+      if (!data.success || !data.tickets.length) {
+        box.innerHTML = `
+          <div style="text-align:center;padding:40px 20px;">
+            <i class="fa-solid fa-ticket" style="font-size:36px;color:#cbd5e1;margin-bottom:10px;display:block;"></i>
+            <p style="color:var(--muted);font-size:13px;">No tickets yet. Submit one if you have an issue.</p>
+          </div>`;
+        return;
+      }
+
+      const statusColors = {
+        open:        { bg:'#eff6ff', color:'#1d4ed8', icon:'fa-circle-dot' },
+        in_progress: { bg:'#fef3c7', color:'#b45309', icon:'fa-gear'       },
+        resolved:    { bg:'#dcfce7', color:'#15803d', icon:'fa-circle-check'},
+        closed:      { bg:'#f1f5f9', color:'#64748b', icon:'fa-lock'       },
+      };
+
+      const priorityColors = {
+        low:    '#22c55e', medium: '#f59e0b',
+        high:   '#f97316', urgent: '#ef4444',
+      };
+
+      box.innerHTML = data.tickets.map(t => {
+        const sc   = statusColors[t.status] || statusColors.open;
+        const pc   = priorityColors[t.priority] || '#64748b';
+        const date = new Date(t.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+        const updated = t.updated_at !== t.created_at
+          ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Updated: ${new Date(t.updated_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>`
+          : '';
+
+        const adminReply = t.admin_note
+          ? `<div style="margin-top:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;">
+               <div style="font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;"><i class="fa-solid fa-comment-dots"></i> Admin Response</div>
+               <div style="font-size:13px;color:var(--text);">${t.admin_note}</div>
+             </div>`
+          : '';
+
+        return `
+          <div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;background:var(--surface);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;">${t.title}</div>
+                <div style="font-size:11px;color:var(--muted);">${t.category.charAt(0).toUpperCase()+t.category.slice(1)} · ${date}</div>
+                ${updated}
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+                <span style="background:${sc.bg};color:${sc.color};padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;">
+                  <i class="fa-solid ${sc.icon}"></i> ${t.status.replace('_',' ').toUpperCase()}
+                </span>
+                <span style="background:${pc}22;color:${pc};padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;border:1px solid ${pc}44;">
+                  ${t.priority.toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:6px;"><i class="fa-solid fa-location-dot" style="margin-right:4px;"></i>${t.location}</div>
+            <div style="font-size:13px;color:var(--slate-700);line-height:1.5;">${t.description}</div>
+            ${adminReply}
+          </div>`;
+      }).join('');
+
+    } catch (e) {
+      box.innerHTML = '<p style="color:#dc2626;font-size:13px;text-align:center;padding:20px;">Failed to load tickets.</p>';
+    }
+  }
+  </script>
+
+</body>
+</html>

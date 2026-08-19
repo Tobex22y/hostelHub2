@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Callback</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-placeholder">🏢</div>
+                </div>
+                <div class="header-text">
+                    <h1>Bouesti Hostel Management System</h1>
+                    <p>Confirming your allocation after payment.</p>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="card">
+                <div id="callbackContent">
+                    <p>Waiting for payment confirmation...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../config.js"></script>
+    <script>
+        const callbackContent = document.getElementById('callbackContent');
+
+        function showMessage(message, type = 'success') {
+            callbackContent.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function getQueryParams() {
+            return new URLSearchParams(window.location.search);
+        }
+
+        async function handleCallback() {
+            const params = getQueryParams();
+            const status = params.get('status');
+            const txRef = params.get('tx_ref');
+            const transactionId = params.get('transaction_id');
+
+            if (!txRef) {
+                showMessage('Missing transaction reference. Please return to the portal and try again.', 'error');
+                return;
+            }
+
+            if (status !== 'successful' || !transactionId) {
+                showMessage('Payment was not completed. If you believe this is a mistake, check your Flutterwave transaction and try again.', 'error');
+                return;
+            }
+
+            showMessage('Verifying payment with the backend...', 'success');
+
+            try {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/payment_callback.php?status=${encodeURIComponent(status)}&tx_ref=${encodeURIComponent(txRef)}&transaction_id=${encodeURIComponent(transactionId)}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    showMessage(result.message || 'Payment verification failed.', 'error');
+                    return;
+                }
+
+                showMessage(`Payment confirmed. ${result.message}`, 'success');
+                callbackContent.innerHTML += `
+                    <p>Hostel: ${result.data.hostel}</p>
+                    <p>Room: ${result.data.room}</p>
+                    <p>Academic year: ${result.data.academic_year}</p>
+                    <p><a href="index.html" class="button">Return to portal</a></p>
+                `;
+            } catch (error) {
+                showMessage('Unable to verify payment at this time. Please try again later.', 'error');
+            }
+        }
+
+        handleCallback();
+        
+    </script>
+</body>
+</html>

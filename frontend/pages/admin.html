@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel - HostelHub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <style>
+    .charts-row { align-items: stretch; }
+    .chart-panel-header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .panel-subtitle { font-size: 12px; color: #94a3b8; font-weight: 500; }
+    .chart-legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; margin: 14px 0 4px; font-size: 13px; color: #334155; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .stat-chip-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #eef2f7; }
+    .stat-chip { border-radius: 10px; padding: 10px 8px; text-align: center; }
+    .stat-chip-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .05em; color: #64748b; margin-bottom: 4px; }
+    .stat-chip-value { display: block; font-size: 16px; font-weight: 700; }
+    .stat-chip-occupied  { background: #fef2f2; }
+    .stat-chip-occupied  .stat-chip-value { color: #b91c1c; }
+    .stat-chip-allocated { background: #fffbeb; }
+    .stat-chip-allocated .stat-chip-value { color: #b45309; }
+    .stat-chip-available { background: #f0fdf4; }
+    .stat-chip-available .stat-chip-value { color: #15803d; }
+    .hall-rates-note { text-align: center; font-size: 12px; color: #64748b; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-container" style="display: flex; width: 100%;">
+  
+  <aside class="sidebar-wrapper">
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-shield-halved"></i>
+      <h2>HostelHub Admin</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active"><i class="fa-solid fa-gauge-high"></i> Overview</a>
+      <a href="#" class="nav-item"><i class="fa-solid fa-door-closed"></i> Rooms</a>
+      <a href="#" class="nav-item"><i class="fa-solid fa-users"></i> Student Database</a>
+      <div style="flex: 1;"></div>
+      <a href="#" onclick="logout()" class="nav-item logout-link"><i class="fa-solid fa-power-off"></i> Clear Session</a>
+    </nav>
+  </aside>
+
+  <main class="main-viewport">
+    
+    <header class="dashboard-header">
+      <div class="header-titles">
+        <h1>Dashboard Analytics</h1>
+        <p>Real-time system state monitoring and dynamic room provisioning.</p>
+      </div>
+    </header>
+
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon"><i class="fa-solid fa-building"></i></div>
+        <div class="metric-data"><h3>Total Rooms</h3><p id="totalRooms">0</p></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon"><i class="fa-solid fa-layer-group"></i></div>
+        <div class="metric-data"><h3>Total Beds</h3><p id="totalBeds">0</p></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon"><i class="fa-solid fa-user-lock"></i></div>
+        <div class="metric-data"><h3>Occupied spaces</h3><p id="occupiedBeds">0</p></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon"><i class="fa-solid fa-circle-nodes"></i></div>
+        <div class="metric-data"><h3>Available spaces</h3><p id="availableBeds">0</p></div>
+      </div>
+    </section>
+
+    <div class="view-grid charts-row">
+      <section class="ui-panel">
+        <div class="panel-header chart-panel-header">
+          <h2><i class="fa-solid fa-chart-pie"></i> Room &amp; Space Occupancy Chart</h2>
+          <span class="panel-subtitle">Occupied vs Available vs Allocated</span>
+        </div>
+        <div style="max-width:320px;margin:0 auto;padding:10px 0;">
+          <canvas id="occupancyDonutChart" height="240"></canvas>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-item"><i class="legend-dot" style="background:#f59e0b;"></i>Allocated (Pending Approval)</span>
+          <span class="legend-item"><i class="legend-dot" style="background:#22c55e;"></i>Available Spaces</span>
+          <span class="legend-item"><i class="legend-dot" style="background:#ef4444;"></i>Occupied Spaces</span>
+        </div>
+        <div class="stat-chip-row">
+          <div class="stat-chip stat-chip-occupied">
+            <span class="stat-chip-label">OCCUPIED</span>
+            <span class="stat-chip-value" id="statOccupied">0 Beds</span>
+          </div>
+          <div class="stat-chip stat-chip-allocated">
+            <span class="stat-chip-label">ALLOCATED</span>
+            <span class="stat-chip-value" id="statAllocated">0 Beds</span>
+          </div>
+          <div class="stat-chip stat-chip-available">
+            <span class="stat-chip-label">AVAILABLE</span>
+            <span class="stat-chip-value" id="statAvailable">0 Beds</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="ui-panel">
+        <div class="panel-header chart-panel-header">
+          <h2><i class="fa-solid fa-building"></i> Hall Distribution Analytics</h2>
+          <span class="panel-subtitle">Halls A to E Bed Breakdown</span>
+        </div>
+        <div style="padding:10px 0;">
+          <canvas id="hallDistributionChart" height="240"></canvas>
+        </div>
+        <p class="hall-rates-note">Dynamic Hall Rates: A (₦50,000) · B (₦50,000) · C1 (₦50,000) · C2 (₦65,000) · D (₦55,000) · E (₦60,000)</p>
+      </section>
+    </div>
+
+    <div class="view-grid">
+      
+      <section class="ui-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-circle-plus"></i> Deploy Base Room</h2>
+        </div>
+        <div class="ui-form">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Room Code / Identifier</label>
+              <input id="roomNumber" type="text" placeholder="e.g. C2-102">
+            </div>
+            <div class="form-field">
+              <label>Structural Variant</label>
+              <input id="roomType" type="text" placeholder="e.g. Standard Suite">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Residential Hall Assignment</label>
+              <select id="roomHall" onchange="applyDynamicHallPrice()">
+                <option value="">Select Target Hall</option>
+                <option value="A">Hall A (₦50,000)</option>
+                <option value="B">Hall B (₦50,000)</option>
+                <option value="C1">Hall C1 (₦50,000)</option>
+                <option value="C2">Hall C2 (₦65,000)</option>
+                <option value="D">Hall D (₦55,000)</option>
+                <option value="E">Hall E (₦60,000)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Gender Demographics</label>
+              <select id="roomGender">
+                <option value="male">Male Only</option>
+                <option value="female">Female Only</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Bed Allocation Count</label>
+              <input id="capacity" type="number" value="4" min="1">
+            </div>
+            <div class="form-field">
+              <label>Rate Fee Base (₦)</label>
+              <input id="price" type="number" placeholder="Automatic via Hall" readonly>
+            </div>
+          </div>
+          <button class="btn-submit" onclick="createRoom()">
+            <i class="fa-solid fa-floppy-disk"></i> Save Room Layout
+          </button>
+        </div>
+      </section>
+
+      <section class="ui-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Review Required Pending Holds</h2>
+        </div>
+        <div id="requests" class="requests-stack-container">
+          </div>
+      </section>
+
+    </div>
+
+    <section class="ui-panel full-width">
+      <div class="panel-header">
+        <h2><i class="fa-solid fa-list-check"></i> Active Student Allocation Master Registry</h2>
+      </div>
+      <div class="table-container">
+        <table id="allocationsTable">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Matric Number</th>
+              <th>Hall Context</th>
+              <th>Room Code</th>
+              <th>Bed Space</th>
+              <th>Tracking Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="allocationsList">
+            </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ui-panel full-width" style="margin-top:24px;">
+      <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e5e7eb;">
+        <h2><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance Tickets</h2>
+        <button onclick="loadTickets(true)" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
+          <i class="fa-solid fa-rotate"></i> Refresh
+        </button>
+      </div>
+      <div id="tickets-admin-list">
+        <p style="color:#6b7280;text-align:center;padding:30px;">Loading tickets…</p>
+      </div>
+    </section>
+
+    <section class="ui-panel danger-zone">
+      <div class="danger-meta">
+        <h3>System Maintenance Actions</h3>
+        <p>Permanently purges active logs, room properties, matrices, and system allocation rows.</p>
+      </div>
+      <button class="btn-danger" onclick="resetDB()">
+        <i class="fa-solid fa-trash-arrow-up"></i> Reset Database
+      </button>
+    </section>
+
+  </main>
+</div>
+
+<script src="../config.js"></script>
+<!-- Use this reliable CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="../assets/js/admin.js"></script>
+</body>
+</html>

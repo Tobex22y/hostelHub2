@@ -1,0 +1,23 @@
+/* Local Paystack-style fallback for payment buttons */
+.paystack-btn,
+.btn-pay,
+.pay-button {
+  display: inline-block;
+  background: #00a3ff;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.paystack-btn:hover,
+.btn-pay:hover,
+.pay-button:hover {
+  background: #008bd6;
+}
+
+/* small utility to match Paystack spacing */
+.paystack-container { margin-top: 12px; }
