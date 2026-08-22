@@ -1,11 +1,19 @@
 <?php
+require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/session_handler.php";
+
+$handler = new DBSessionHandler();
+session_set_save_handler($handler, true);
+
 session_start();
 
-header("Access-Control-Allow-Origin: http://localhost");
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origin) {
+    header("Access-Control-Allow-Origin: $origin");
+}
 header("Access-Control-Allow-Credentials: true");
+header("Vary: Origin");
 header("Content-Type: application/json");
-
-require_once "../config/db.php";
 
 if (!isset($_SESSION["student_id"])) {
     echo json_encode([
@@ -14,12 +22,9 @@ if (!isset($_SESSION["student_id"])) {
     ]);
     exit;
 }
-
 $student_id = $_SESSION["student_id"];
-
 try {
     $pdo = DB::get();
-
     $stmt = $pdo->prepare("
         SELECT 
             a.id,
@@ -38,10 +43,8 @@ try {
         ORDER BY a.id DESC
         LIMIT 1
     ");
-
     $stmt->execute([$student_id]);
     $allocation = $stmt->fetch(PDO::FETCH_ASSOC);
-
     if (!$allocation) {
         echo json_encode([
             "success" => true,
@@ -49,12 +52,10 @@ try {
         ]);
         exit;
     }
-
     echo json_encode([
         "success" => true,
         "allocation" => $allocation
     ]);
-
 } catch (Exception $e) {
     echo json_encode([
         "success" => false,
