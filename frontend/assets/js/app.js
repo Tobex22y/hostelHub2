@@ -5,7 +5,7 @@
 // Safely resolve CONFIG (some pages set window.CONFIG in ../config.js)
 const cfg = (typeof CONFIG !== 'undefined'
   ? CONFIG
-  : (typeof window !== 'undefined' ? window.CONFIG : undefined)) || { API_BASE_URL: window.location.origin + '/HostelHub-main/backend/api' };
+  : (typeof window !== 'undefined' ? window.CONFIG : undefined)) || { API_BASE_URL: window.location.origin + '/backend/api' };
 const API = cfg.API_BASE_URL;
 
 // ==============================
@@ -94,7 +94,7 @@ async function loadDashboard() {
     const avatarEl = document.getElementById('studentAvatar');
     if (avatarEl) {
       if (student.profile_image) {
-        avatarEl.src = window.location.origin + '/HostelHub-main/backend/uploads/profiles/' + student.profile_image;
+        avatarEl.src = window.location.origin + '/backend/uploads/profiles/' + student.profile_image;
       } else {
         avatarEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(student.fullname) + '&background=2d7a3e&color=fff';
       }
@@ -293,7 +293,7 @@ function goToRoomPageWithHall(hallId) {
     const pagesBase = API.replace('/backend/api', '/frontend/pages');
     window.location.href = pagesBase + '/room.html';
   } catch (e) {
-    window.location.href = window.location.origin + '/HostelHub-main/frontend/pages/room.html';
+    window.location.href = window.location.origin + '/frontend/pages/room.html';
   }
 }
 
