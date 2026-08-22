@@ -9,7 +9,13 @@ session_set_cookie_params([
 "secure"   => true, // MUST be true when SameSite=None — browsers reject it otherwise
     "secure" => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' // true on Render (https), false on local XAMPP (http)
 ]);
-session_start();
+require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../config/session_handler.php";
+
+$handler = new DBSessionHandler();
+session_set_save_handler($handler, true);
+
+session_start(); // your existing call — keep everything else the same
 error_log("LOGIN session_id: " . session_id() . " | student_id set to: " . ($_SESSION['student_id'] ?? 'not yet'));
 
 // Reflect whichever origin actually made the request, instead of hardcoding localhost.
