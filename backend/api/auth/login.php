@@ -9,6 +9,7 @@ session_set_cookie_params([
     "secure" => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' // true on Render (https), false on local XAMPP (http)
 ]);
 session_start();
+error_log("LOGIN session_id: " . session_id() . " | student_id set to: " . ($_SESSION['student_id'] ?? 'not yet'));
 
 // Reflect whichever origin actually made the request, instead of hardcoding localhost.
 // Falls back to '*' only if no Origin header is present (e.g. same-origin requests).
