@@ -30,16 +30,25 @@ if (!defined('APP_BASE_URL')) {
 class DB {
     private static ?PDO $instance = null;
 
-    private const HOST = '127.0.0.1';
-    private const DBNAME = 'hostel_management';
-    private const USER = 'root';
-    private const PASS = '';
+    // Reads from environment variables first (set these in Render's dashboard),
+    // and falls back to your freesqldatabase.com values for local testing.
+    private const HOST = 'sql3.freesqldatabase.com';
+    private const DBNAME = 'sql3835780';
+    private const USER = 'sql3835780';
+    private const PASS = '3TAkSypieP';
+    private const PORT = '3306';
 
     public static function get(): PDO {
         if (self::$instance === null) {
-            $dsn = "mysql:host=" . self::HOST . ";dbname=" . self::DBNAME . ";charset=utf8mb4";
+            $host = getenv('DB_HOST') ?: self::HOST;
+            $dbname = getenv('DB_NAME') ?: self::DBNAME;
+            $user = getenv('DB_USER') ?: self::USER;
+            $pass = getenv('DB_PASS') ?: self::PASS;
+            $port = getenv('DB_PORT') ?: self::PORT;
 
-            self::$instance = new PDO($dsn, self::USER, self::PASS, [
+            $dsn = "mysql:host=" . $host . ";port=" . $port . ";dbname=" . $dbname . ";charset=utf8mb4";
+
+            self::$instance = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
             ]);
