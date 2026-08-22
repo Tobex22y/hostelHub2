@@ -118,7 +118,7 @@ if (!isset($no_allocation)) {
                 }
             }
         }
-        define('APP_BASE_URL', 'http://' . $appBaseHost . '/HostelHub-main/backend/api/student');
+        define('APP_BASE_URL', 'http://' . $appBaseHost . '/backend/api/student');
     }
     $qr_url = APP_BASE_URL . "/verify_pass.php?ref=" . urlencode($ref_code) . "&matric=" . urlencode($data['matric_number']);
 }
