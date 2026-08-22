@@ -11,6 +11,7 @@ session_start();
 // or a private LAN address, same pattern already used in
 // update_ticket.php.
 // ─────────────────────────────────────────────────────────────
+error_log("DASHBOARD session_id: " . session_id() . " | student_id in session: " . ($_SESSION['student_id'] ?? 'NOT SET') . " | save_path: " . session_save_path());
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (preg_match('#^https?://(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$#', $origin)) {
     header("Access-Control-Allow-Origin: {$origin}");
