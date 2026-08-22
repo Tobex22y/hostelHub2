@@ -16,6 +16,7 @@
  *      endpoints appear to use. If your login.php sets a different key,
  *      update AUTH_SESSION_KEY below.
  */
+     require_once __DIR__ . "/../config/session_bootstrap.php";
 
 session_start();
 header('Content-Type: application/json');
