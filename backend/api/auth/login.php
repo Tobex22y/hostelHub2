@@ -5,7 +5,8 @@ session_set_cookie_params([
     // Removed "domain" => "localhost" — leaving domain unset lets the browser
     // default to the current request's actual host (works on both XAMPP and Render).
     "httponly" => true,
-    "samesite" => "Lax",
+    "samesite" => "None",
+"secure"   => true, // MUST be true when SameSite=None — browsers reject it otherwise
     "secure" => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' // true on Render (https), false on local XAMPP (http)
 ]);
 session_start();
