@@ -47,6 +47,7 @@
       z-index: 40;
       transition: transform 0.25s;
     }
+    .sidebar.is-closed { transform: translateX(-100%); }
     .sidebar-brand {
       padding: 24px 20px 20px;
       border-bottom: 1px solid rgba(255,255,255,.1);
@@ -84,7 +85,8 @@
     .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.1); }
 
     /* ── MAIN ── */
-    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; transition: margin-left 0.25s; }
+    body.sidebar-closed .main { margin-left: 0; }
 
     /* ── TOPBAR (identical to dashboard.html) ── */
     .topbar {
@@ -101,6 +103,14 @@
       border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s;
     }
     .btn-logout:hover { background: #fee2e2; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-menu {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 8px 12px; background: var(--primary-light); color: var(--primary-dark);
+      border: 1px solid #bbf7d0; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .btn-menu:hover { background: #dcfce7; color: var(--primary); }
 
     /* ── PAGE BODY ── */
     .page-body { padding: 28px; flex: 1; }
@@ -266,6 +276,7 @@
 
     @media (max-width: 900px) {
       .sidebar { transform: translateX(-100%); }
+      .sidebar.is-open { transform: translateX(0); }
       .main { margin-left: 0; }
     }
     @media (max-width: 600px) {
@@ -278,7 +289,7 @@
 <body>
 
   <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="student-sidebar">
     <div class="sidebar-brand">
       <div class="logo_container">
         <img src="../assets/images/bouestilogo.png" alt="BOUESTI" id="logo" />
@@ -340,7 +351,12 @@
           <p>BOUESTI Hostel Portal</p>
         </div>
       </div>
-      <button class="btn-logout" onclick="logout()">Logout</button>
+      <div class="topbar-actions">
+        <button class="btn-menu" type="button" onclick="toggleSidebar()" aria-expanded="false" aria-controls="student-sidebar">
+          <i class="fa-solid fa-bars" aria-hidden="true"></i> Menu
+        </button>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+      </div>
     </div>
 
     <div class="page-body">
@@ -394,6 +410,19 @@
 
 <script src="../config.js"></script>
 <script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    const isOpen = sidebar.classList.contains('is-open') ||
+      (!sidebar.classList.contains('is-closed') && window.innerWidth > 900);
+    sidebar.classList.toggle('is-open', !isOpen);
+    sidebar.classList.toggle('is-closed', isOpen);
+    document.body.classList.toggle('sidebar-closed', isOpen);
+    const menuButton = document.querySelector('.btn-menu');
+    if (menuButton) menuButton.setAttribute('aria-expanded', String(!isOpen));
+  }
+</script>
 <script src="../assets/js/room.js"></script>
 </body>
 </html>
