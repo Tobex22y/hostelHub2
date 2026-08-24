@@ -111,7 +111,7 @@ async function loadDashboard() {
     const avatarEl = document.getElementById('studentAvatar');
     if (avatarEl) {
       if (student.profile_image) {
-        avatarEl.src = window.location.origin + '/backend/uploads/profiles/' + student.profile_image;
+        avatarEl.src = new URL('../uploads/profiles/' + encodeURIComponent(student.profile_image), API + '/').href;
       } else {
         avatarEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(student.fullname) + '&background=2d7a3e&color=fff';
       }

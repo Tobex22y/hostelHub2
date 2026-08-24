@@ -111,6 +111,17 @@
       font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s;
     }
     .btn-menu:hover { background: #dcfce7; color: var(--primary); }
+    .data-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .payment-row { padding: 18px 20px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+    .payment-row:last-child { border-bottom: 0; }
+    .payment-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; margin-bottom: 6px; }
+    .payment-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: 13px; }
+    .payment-amount { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; color: var(--primary-dark); text-align: right; }
+    .status-badge { padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: capitalize; background: #f1f5f9; color: #475569; }
+    .status-badge.success { background: #dcfce7; color: #166534; }
+    .status-badge.failed { background: #fee2e2; color: #991b1b; }
+    .state-message { padding: 42px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+    @media (max-width: 600px) { .payment-row { grid-template-columns: 1fr; } .payment-amount { text-align: left; } }
 
     /* ── PAGE BODY ── */
     .page-body { padding: 28px; flex: 1; }
@@ -354,22 +365,49 @@
     <div class="page-body">
       <div class="page-header">
         <h1>Payments</h1>
-        <p>This page is under construction.</p>
+        <p>Your payment transaction history.</p>
       </div>
 
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:48px 24px;text-align:center;">
-        <i class="fa-solid fa-credit-card" style="font-size:40px;color:var(--primary);margin-bottom:16px;display:block;"></i>
-        <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">Coming Soon</h2>
-        <p style="color:var(--muted);font-size:14px;max-width:420px;margin:0 auto;">
-          We're still building the Payments page. In the meantime you can head back to your
-          <a href="dashboard.html" style="color:var(--primary);font-weight:600;">Dashboard</a>.
-        </p>
+      <div id="paymentList" class="data-panel">
+        <div class="state-message"><i class="fa-solid fa-spinner fa-spin"></i> Loading payment history...</div>
       </div>
     </div>
   </div>
 
 <script src="../config.js"></script>
 <script>
+  const paymentApi = CONFIG.API_BASE_URL;
+  const paymentList = document.getElementById('paymentList');
+  const escapePayment = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+
+  async function loadPayments() {
+    try {
+      const response = await fetch(paymentApi + '/student/payments.php', { credentials: 'include' });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Unable to load payment history.');
+      const payments = data.payments || [];
+      if (!payments.length) {
+        paymentList.innerHTML = '<div class="state-message"><i class="fa-solid fa-receipt"></i><br>No payment transactions found.</div>';
+        return;
+      }
+      paymentList.innerHTML = payments.map(payment => `
+        <article class="payment-row">
+          <div>
+            <div class="payment-title">${escapePayment(payment.reference || 'Payment transaction')}</div>
+            <div class="payment-meta">
+              <span><i class="fa-regular fa-calendar"></i> ${new Date(payment.created_at).toLocaleDateString()}</span>
+              <span><i class="fa-solid fa-door-open"></i> ${escapePayment(payment.room_number ? `Room ${payment.room_number}` : 'Allocation payment')}</span>
+            </div>
+          </div>
+          <div><div class="payment-amount">₦${Number(payment.amount || 0).toLocaleString()}</div><span class="status-badge ${escapePayment(String(payment.status).toLowerCase())}">${escapePayment(payment.status)}</span></div>
+        </article>`).join('');
+    } catch (error) {
+      paymentList.innerHTML = `<div class="state-message"><i class="fa-solid fa-circle-exclamation"></i><br>${escapePayment(error.message)}</div>`;
+    }
+  }
+
+  loadPayments();
+
   function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;

@@ -28,6 +28,8 @@ try {
     $stmt = $pdo->prepare("
         SELECT 
             a.id,
+            a.room_id,
+            a.bed_id,
             a.status,
             a.payment_reference,
             a.created_at,
@@ -40,21 +42,14 @@ try {
         JOIN rooms r ON a.room_id = r.id
         JOIN bedspaces b ON a.bed_id = b.id
         WHERE a.student_id = ?
-        ORDER BY a.id DESC
-        LIMIT 1
+        ORDER BY a.created_at DESC, a.id DESC
     ");
     $stmt->execute([$student_id]);
-    $allocation = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$allocation) {
-        echo json_encode([
-            "success" => true,
-            "allocation" => null
-        ]);
-        exit;
-    }
+    $allocations = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode([
         "success" => true,
-        "allocation" => $allocation
+        "allocation" => $allocations[0] ?? null,
+        "allocations" => $allocations
     ]);
 } catch (Exception $e) {
     echo json_encode([

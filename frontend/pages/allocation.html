@@ -111,6 +111,17 @@
       font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s;
     }
     .btn-menu:hover { background: #dcfce7; color: var(--primary); }
+    .data-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .allocation-row { padding: 18px 20px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+    .allocation-row:last-child { border-bottom: 0; }
+    .allocation-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; margin-bottom: 6px; }
+    .allocation-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: 13px; }
+    .status-badge { padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: capitalize; background: #f1f5f9; color: #475569; }
+    .status-badge.paid, .status-badge.active, .status-badge.approved { background: #dcfce7; color: #166534; }
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+    .status-badge.rejected { background: #fee2e2; color: #991b1b; }
+    .state-message { padding: 42px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+    @media (max-width: 600px) { .allocation-row { grid-template-columns: 1fr; } }
 
     /* ── PAGE BODY ── */
     .page-body { padding: 28px; flex: 1; }
@@ -354,22 +365,50 @@
     <div class="page-body">
       <div class="page-header">
         <h1>Allocation</h1>
-        <p>This page is under construction.</p>
+        <p>Your allocation applications and current room assignments.</p>
       </div>
 
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:48px 24px;text-align:center;">
-        <i class="fa-solid fa-list" style="font-size:40px;color:var(--primary);margin-bottom:16px;display:block;"></i>
-        <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">Coming Soon</h2>
-        <p style="color:var(--muted);font-size:14px;max-width:420px;margin:0 auto;">
-          We're still building the Allocation page. In the meantime you can head back to your
-          <a href="dashboard.html" style="color:var(--primary);font-weight:600;">Dashboard</a>.
-        </p>
+      <div id="allocationList" class="data-panel">
+        <div class="state-message"><i class="fa-solid fa-spinner fa-spin"></i> Loading allocations...</div>
       </div>
     </div>
   </div>
 
 <script src="../config.js"></script>
 <script>
+  const allocationApi = CONFIG.API_BASE_URL;
+  const allocationList = document.getElementById('allocationList');
+  const escapeAllocation = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+
+  async function loadAllocations() {
+    try {
+      const response = await fetch(allocationApi + '/student/allocation.php', { credentials: 'include' });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Unable to load allocations.');
+      const allocations = data.allocations || [];
+      if (!allocations.length) {
+        allocationList.innerHTML = '<div class="state-message"><i class="fa-solid fa-bed"></i><br>No allocation applications found.</div>';
+        return;
+      }
+      allocationList.innerHTML = allocations.map(allocation => `
+        <article class="allocation-row">
+          <div>
+            <div class="allocation-title">${escapeAllocation(allocation.hall || 'Hall')} · Room ${escapeAllocation(allocation.room_number || 'N/A')}</div>
+            <div class="allocation-meta">
+              <span><i class="fa-solid fa-bed"></i> Bed ${escapeAllocation(allocation.bed_number || 'N/A')}</span>
+              <span><i class="fa-solid fa-door-open"></i> ${escapeAllocation(allocation.room_type || 'Standard')}</span>
+              <span><i class="fa-regular fa-calendar"></i> ${new Date(allocation.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+          <span class="status-badge ${escapeAllocation(String(allocation.status).toLowerCase())}">${escapeAllocation(allocation.status)}</span>
+        </article>`).join('');
+    } catch (error) {
+      allocationList.innerHTML = `<div class="state-message"><i class="fa-solid fa-circle-exclamation"></i><br>${escapeAllocation(error.message)}</div>`;
+    }
+  }
+
+  loadAllocations();
+
   function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;

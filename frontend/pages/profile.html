@@ -111,6 +111,16 @@
       font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s;
     }
     .btn-menu:hover { background: #dcfce7; color: var(--primary); }
+    .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; max-width: 760px; }
+    .profile-heading { display: flex; align-items: center; gap: 18px; padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+    .profile-heading img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; border: 3px solid #dcfce7; background: var(--primary-dark); }
+    .profile-heading h2 { font-size: 1.2rem; margin-bottom: 4px; }
+    .profile-heading p { color: var(--muted); font-size: 13px; }
+    .profile-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; }
+    .profile-field label { display: block; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+    .profile-field p { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+    .state-message { padding: 42px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+    @media (max-width: 600px) { .profile-card { padding: 20px; } .profile-details { grid-template-columns: 1fr; } }
 
     /* ── PAGE BODY ── */
     .page-body { padding: 28px; flex: 1; }
@@ -354,22 +364,50 @@
     <div class="page-body">
       <div class="page-header">
         <h1>Profile</h1>
-        <p>This page is under construction.</p>
+        <p>Your registered student details.</p>
       </div>
 
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:48px 24px;text-align:center;">
-        <i class="fa-solid fa-user" style="font-size:40px;color:var(--primary);margin-bottom:16px;display:block;"></i>
-        <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">Coming Soon</h2>
-        <p style="color:var(--muted);font-size:14px;max-width:420px;margin:0 auto;">
-          We're still building the Profile page. In the meantime you can head back to your
-          <a href="dashboard.html" style="color:var(--primary);font-weight:600;">Dashboard</a>.
-        </p>
+      <div id="profilePanel" class="profile-card">
+        <div class="state-message"><i class="fa-solid fa-spinner fa-spin"></i> Loading profile...</div>
       </div>
     </div>
   </div>
 
 <script src="../config.js"></script>
 <script>
+  const profileApi = CONFIG.API_BASE_URL;
+  const profilePanel = document.getElementById('profilePanel');
+  const escapeProfile = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+
+  async function loadProfile() {
+    try {
+      const response = await fetch(profileApi + '/student/profile.php', { credentials: 'include' });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Unable to load profile.');
+      const student = data.student;
+      const avatar = student.profile_image
+        ? new URL('../uploads/profiles/' + encodeURIComponent(student.profile_image), profileApi + '/').href
+        : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(student.fullname) + '&background=14532d&color=fff';
+      profilePanel.innerHTML = `
+        <div class="profile-heading">
+          <img src="${escapeProfile(avatar)}" alt="Profile photo" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(student.fullname)}&background=14532d&color=fff'">
+          <div><h2>${escapeProfile(student.fullname)}</h2><p>${escapeProfile(student.matric_number)}</p></div>
+        </div>
+        <div class="profile-details">
+          <div class="profile-field"><label>Full name</label><p>${escapeProfile(student.fullname)}</p></div>
+          <div class="profile-field"><label>Matric number</label><p>${escapeProfile(student.matric_number)}</p></div>
+          <div class="profile-field"><label>Email</label><p>${escapeProfile(student.email)}</p></div>
+          <div class="profile-field"><label>Phone</label><p>${escapeProfile(student.phone)}</p></div>
+          <div class="profile-field"><label>Gender</label><p>${escapeProfile(student.gender)}</p></div>
+          <div class="profile-field"><label>Account created</label><p>${new Date(student.created_at).toLocaleDateString()}</p></div>
+        </div>`;
+    } catch (error) {
+      profilePanel.innerHTML = `<div class="state-message"><i class="fa-solid fa-circle-exclamation"></i><br>${escapeProfile(error.message)}</div>`;
+    }
+  }
+
+  loadProfile();
+
   function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;
