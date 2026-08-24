@@ -8,6 +8,23 @@ const cfg = (typeof CONFIG !== 'undefined'
   : (typeof window !== 'undefined' ? window.CONFIG : undefined)) || { API_BASE_URL: window.location.origin + '/backend/api' };
 const API = cfg.API_BASE_URL;
 
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+
+  const isOpen = sidebar.classList.contains('is-open') ||
+    (!sidebar.classList.contains('is-closed') && window.innerWidth > 900);
+  const menuButton = document.querySelector('.btn-menu');
+
+  sidebar.classList.toggle('is-open', !isOpen);
+  sidebar.classList.toggle('is-closed', isOpen);
+  document.body.classList.toggle('sidebar-closed', isOpen);
+
+  if (menuButton) {
+    menuButton.setAttribute('aria-expanded', String(!isOpen));
+  }
+}
+
 // ==============================
 // GLOBAL STATE
 // ==============================
