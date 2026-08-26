@@ -658,6 +658,22 @@ input::placeholder { color: var(--slate-300); }
 }
 
 @media (max-width: 480px) {
+  header.site-header {
+    height: auto;
+    min-height: 68px;
+    padding: 10px 16px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .logo_container { flex: 0 0 auto; }
+  .nav-links {
+    flex: 1 1 100%;
+    justify-content: center;
+    gap: 2px;
+  }
+  .nav-links a { padding: 6px 8px; font-size: 12px; }
+  .home_section { padding-top: 126px; }
+  .main-wrapper { padding-top: 126px; }
   .rooms-grid { grid-template-columns: 1fr; }
   .hero_actions { flex-direction: column; }
   .btn-primary, .btn-outline { width: 100%; justify-content: center; }
