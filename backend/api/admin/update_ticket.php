@@ -192,15 +192,19 @@ function sendEmailNotification($toEmail, $subject, $message) {
 
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         try {
+            $smtpPass = preg_replace('/\s+/', '', (string) $smtpPass);
+            $smtpPort = (int) ($smtpPort ?: 465);
+            $useStartTls = strtolower(trim((string) $smtpSecure)) === 'tls' || $smtpPort === 587;
+
             $mail->isSMTP();
             $mail->Host       = $smtpHost;
             $mail->SMTPAuth   = true;
             $mail->Username   = $smtpUser;
             $mail->Password   = $smtpPass;
-            $mail->SMTPSecure = strtolower((string) $smtpSecure) === 'tls'
+            $mail->SMTPSecure = $useStartTls
                 ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS
                 : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = (int) ($smtpPort ?: (strtolower((string) $smtpSecure) === 'tls' ? 587 : 465));
+            $mail->Port       = $smtpPort;
 
             $fromEmail = $smtpFrom ?: $smtpUser;
             $fromName  = $smtpFromName ?: 'HostelHub';
@@ -213,8 +217,11 @@ function sendEmailNotification($toEmail, $subject, $message) {
             $mail->send();
             return ["sent" => true, "error" => null];
 
-        } catch (\PHPMailer\PHPMailer\Exception $e) {
+        } catch (\Throwable $e) {
             $errorText = "PHPMailer error: " . $mail->ErrorInfo;
+            if (empty($mail->ErrorInfo)) {
+                $errorText .= $e->getMessage();
+            }
             error_log($errorText);
             return ["sent" => false, "error" => $errorText];
         }
