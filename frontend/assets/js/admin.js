@@ -502,7 +502,11 @@ async function updateTicket(ticketId) {
 
     if (data.success) {
       const emailResult = data.notifications?.email;
-      if (emailResult && !emailResult.sent) {
+      if (!emailResult) {
+        alert('Ticket updated, but the server returned no email status. Make sure Render deployed the latest commit.');
+      } else if (emailResult.sent) {
+        alert('Ticket updated. Email was accepted by the mail server. Check the student inbox spam folder if it is not visible.');
+      } else {
         alert('Ticket updated, but the email was not sent.\n\n' + (emailResult.error || 'Check the server email configuration.'));
       }
       loadTickets(true);

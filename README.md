@@ -16,6 +16,8 @@ SMTP_USER=your-gmail-address
 SMTP_PASS=your-16-character-app-password
 SMTP_FROM=your-gmail-address
 SMTP_FROM_NAME=HostelHub
+# Temporary troubleshooting only; remove after checking Render logs.
+SMTP_DEBUG=1
 ```
 
 After adding or changing variables, redeploy the service. Check Render logs for

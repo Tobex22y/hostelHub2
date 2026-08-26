@@ -205,6 +205,10 @@ function sendEmailNotification($toEmail, $subject, $message) {
                 ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS
                 : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port       = $smtpPort;
+            if (getenv('SMTP_DEBUG') === '1') {
+                $mail->SMTPDebug = 2;
+                $mail->Debugoutput = 'error_log';
+            }
 
             $fromEmail = $smtpFrom ?: $smtpUser;
             $fromName  = $smtpFromName ?: 'HostelHub';
