@@ -175,7 +175,17 @@ async function createRoom() {
       credentials: "include"
     });
 
-    const data = await res.json();
+    const responseText = await res.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      throw new Error(`Server returned HTTP ${res.status} instead of JSON.`);
+    }
+
+    if (!res.ok) {
+      throw new Error(data.message || `Server returned HTTP ${res.status}.`);
+    }
 
     if (data.success) {
       alert("Room configuration and bedspaces deployed cleanly!");
@@ -498,7 +508,17 @@ async function updateTicket(ticketId) {
       headers:     { 'Content-Type': 'application/json' },
       body:        JSON.stringify({ ticket_id: ticketId, status, admin_note: note }),
     });
-    const data = await res.json();
+    const responseText = await res.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      throw new Error(`Server returned HTTP ${res.status} instead of JSON.`);
+    }
+
+    if (!res.ok) {
+      throw new Error(data.message || `Server returned HTTP ${res.status}.`);
+    }
 
     if (data.success) {
       const emailResult = data.notifications?.email;
@@ -514,7 +534,7 @@ async function updateTicket(ticketId) {
       alert('Update failed: ' + data.message);
     }
   } catch (err) {
-    alert('Network error. Please try again.');
+    alert('Ticket update request failed.\n\n' + (err.message || 'Check your connection and try again.'));
     console.error(err);
   }
 }

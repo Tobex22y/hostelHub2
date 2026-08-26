@@ -2,13 +2,14 @@
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/session_handler.php";
 
-$handler = new DBSessionHandler();
-session_set_save_handler($handler, true);
-
-session_start();
-
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin)) {
+$allowedOrigins = [
+    'https://hostelhub2.onrender.com',
+    rtrim((string) getenv('FRONTEND_URL'), '/'),
+    rtrim((string) getenv('RENDER_EXTERNAL_URL'), '/'),
+];
+if (in_array($origin, array_filter($allowedOrigins), true)
+    || preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin)) {
     header("Access-Control-Allow-Origin: {$origin}");
     header("Access-Control-Allow-Credentials: true");
     header("Vary: Origin");
@@ -20,6 +21,10 @@ header("Content-Type: application/json");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
+
+$handler = new DBSessionHandler();
+session_set_save_handler($handler, true);
+session_start();
 
 require_once __DIR__ . '/../config/db.php';
 
