@@ -29,5 +29,7 @@ SMTP_FROM_NAME=HostelHub
 SMTP_DEBUG=1
 ```
 
+The SMTP connection prefers IPv4 to avoid hosts where IPv6 routing is unavailable.
+
 After adding or changing variables, redeploy the service. Check Render logs for
 the PHPMailer error returned by the ticket update endpoint if delivery still fails.

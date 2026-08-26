@@ -242,9 +242,14 @@ function sendEmailNotification($toEmail, $subject, $message) {
             $smtpPass = preg_replace('/\s+/', '', (string) $smtpPass);
             $smtpPort = (int) ($smtpPort ?: 465);
             $useStartTls = strtolower(trim((string) $smtpSecure)) === 'tls' || $smtpPort === 587;
+            $smtpConnectionHost = $smtpHost;
+            $smtpIpv4Addresses = gethostbynamel($smtpHost);
+            if (!empty($smtpIpv4Addresses)) {
+                $smtpConnectionHost = $smtpIpv4Addresses[0];
+            }
 
             $mail->isSMTP();
-            $mail->Host       = $smtpHost;
+            $mail->Host       = $smtpConnectionHost;
             $mail->SMTPAuth   = true;
             $mail->Username   = $smtpUser;
             $mail->Password   = $smtpPass;
@@ -252,6 +257,13 @@ function sendEmailNotification($toEmail, $subject, $message) {
                 ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS
                 : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port       = $smtpPort;
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'peer_name' => $smtpHost,
+                    'verify_peer' => true,
+                    'verify_peer_name' => true,
+                ],
+            ];
             if (getenv('SMTP_DEBUG') === '1') {
                 $mail->SMTPDebug = 2;
                 $mail->Debugoutput = 'error_log';
