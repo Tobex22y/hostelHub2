@@ -181,6 +181,48 @@ function sendEmailNotification($toEmail, $subject, $message) {
     if (file_exists($secretsFile)) {
         require_once $secretsFile;
     };
+    $resendApiKey = getenv('RESEND_API_KEY');
+    $resendFrom = getenv('RESEND_FROM');
+
+    if (!empty($resendApiKey) && !empty($resendFrom)) {
+        $payload = json_encode([
+            'from' => $resendFrom,
+            'to' => [$toEmail],
+            'subject' => $subject,
+            'text' => $message,
+        ]);
+        $ch = curl_init('https://api.resend.com/emails');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $resendApiKey,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_TIMEOUT => 15,
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            $errorText = 'Resend connection error: ' . $curlError;
+            error_log($errorText);
+            return ['sent' => false, 'error' => $errorText];
+        }
+
+        $responseData = json_decode($response, true);
+        if ($httpCode >= 200 && $httpCode < 300 && !empty($responseData['id'])) {
+            return ['sent' => true, 'error' => null];
+        }
+
+        $errorText = 'Resend error (HTTP ' . $httpCode . '): ' . ($response ?: 'Empty response.');
+        error_log($errorText);
+        return ['sent' => false, 'error' => $errorText];
+    }
+
     $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
     $smtpHost = defined('SMTP_HOST') ? SMTP_HOST : getenv('SMTP_HOST');
     $smtpPort = defined('SMTP_PORT') ? SMTP_PORT : getenv('SMTP_PORT');

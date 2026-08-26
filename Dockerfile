@@ -7,8 +7,9 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libcurl4-openssl-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mysqli gd zip \
+    && docker-php-ext-install pdo pdo_mysql mysqli gd zip curl \
     && a2enmod rewrite
 
 # Set the working directory to Apache's web root
