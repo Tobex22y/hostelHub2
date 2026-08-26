@@ -177,7 +177,14 @@ function sendEmailNotification($toEmail, $subject, $message) {
         require_once $secretsFile;
     };
     $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
-    $canUseSMTP = defined('SMTP_HOST') && defined('SMTP_USER') && defined('SMTP_PASS')
+    $smtpHost = defined('SMTP_HOST') ? SMTP_HOST : getenv('SMTP_HOST');
+    $smtpPort = defined('SMTP_PORT') ? SMTP_PORT : getenv('SMTP_PORT');
+    $smtpUser = defined('SMTP_USER') ? SMTP_USER : getenv('SMTP_USER');
+    $smtpPass = defined('SMTP_PASS') ? SMTP_PASS : getenv('SMTP_PASS');
+    $smtpFrom = defined('SMTP_FROM') ? SMTP_FROM : getenv('SMTP_FROM');
+    $smtpFromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : getenv('SMTP_FROM_NAME');
+    $smtpSecure = defined('SMTP_SECURE') ? SMTP_SECURE : getenv('SMTP_SECURE');
+    $canUseSMTP = !empty($smtpHost) && !empty($smtpUser) && !empty($smtpPass)
         && file_exists($vendorAutoload);
 
     if ($canUseSMTP) {
@@ -186,15 +193,17 @@ function sendEmailNotification($toEmail, $subject, $message) {
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         try {
             $mail->isSMTP();
-            $mail->Host       = SMTP_HOST;
+            $mail->Host       = $smtpHost;
             $mail->SMTPAuth   = true;
-            $mail->Username   = SMTP_USER;
-            $mail->Password   = SMTP_PASS;
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = defined('SMTP_PORT') ? SMTP_PORT : 465;
+            $mail->Username   = $smtpUser;
+            $mail->Password   = $smtpPass;
+            $mail->SMTPSecure = strtolower((string) $smtpSecure) === 'tls'
+                ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS
+                : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = (int) ($smtpPort ?: (strtolower((string) $smtpSecure) === 'tls' ? 587 : 465));
 
-            $fromEmail = defined('SMTP_FROM') ? SMTP_FROM : SMTP_USER;
-            $fromName  = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'HostelHub';
+            $fromEmail = $smtpFrom ?: $smtpUser;
+            $fromName  = $smtpFromName ?: 'HostelHub';
             $mail->setFrom($fromEmail, $fromName);
             $mail->addAddress($toEmail);
 

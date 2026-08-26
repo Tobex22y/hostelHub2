@@ -4,9 +4,7 @@
  *
  * SMTP + third-party API credentials for HostelHub.
  *
- * ⚠️ DO NOT commit this file to version control.
- * Add it to .gitignore:
- *     config/secrets.php
+ * Values are read from environment variables so this file is safe to deploy.
  *
  * Place this file at: <project-root>/config/secrets.php
  * (i.e. next to db.php, since update_ticket.php loads it via
@@ -14,12 +12,13 @@
  */
 
 // ---- SMTP (email) ----
-define('SMTP_HOST', 'smtp.gmail.com');       // or your provider's SMTP host
-define('SMTP_PORT', 465);
-define('SMTP_USER', 'tobiosuntoki@gmail.com');
-define('SMTP_PASS', 'gseu dhnm dtsr gquw'); // Gmail: use an App Password, not your login password
-define('SMTP_FROM', 'tobiosuntoki@gmail.com');
-define('SMTP_FROM_NAME', 'HostelHub');
+if ($value = getenv('SMTP_HOST')) define('SMTP_HOST', $value);
+if ($value = getenv('SMTP_PORT')) define('SMTP_PORT', $value);
+if ($value = getenv('SMTP_USER')) define('SMTP_USER', $value);
+if ($value = getenv('SMTP_PASS')) define('SMTP_PASS', $value);
+if ($value = getenv('SMTP_FROM')) define('SMTP_FROM', $value);
+if ($value = getenv('SMTP_FROM_NAME')) define('SMTP_FROM_NAME', $value);
+if ($value = getenv('SMTP_SECURE')) define('SMTP_SECURE', $value);
 
 // ---- Termii (SMS) ----
-define('TERMII_API_KEY', 'tlv_IifSiSfgaKT5z6F1xINPoY9u9qowkHn6sJSLfQw-BSw');
+if ($value = getenv('TERMII_API_KEY')) define('TERMII_API_KEY', $value);

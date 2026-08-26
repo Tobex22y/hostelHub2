@@ -501,6 +501,10 @@ async function updateTicket(ticketId) {
     const data = await res.json();
 
     if (data.success) {
+      const emailResult = data.notifications?.email;
+      if (emailResult && !emailResult.sent) {
+        alert('Ticket updated, but the email was not sent.\n\n' + (emailResult.error || 'Check the server email configuration.'));
+      }
       loadTickets(true);
     } else {
       alert('Update failed: ' + data.message);
