@@ -1,13 +1,13 @@
 <?php
+$isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 session_set_cookie_params([
     "lifetime" => 0,
     "path" => "/",
     // Removed "domain" => "localhost" — leaving domain unset lets the browser
     // default to the current request's actual host (works on both XAMPP and Render).
     "httponly" => true,
-    "samesite" => "None",
-"secure"   => true, // MUST be true when SameSite=None — browsers reject it otherwise
-    "secure" => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' // true on Render (https), false on local XAMPP (http)
+    "samesite" => $isHttps ? "None" : "Lax",
+    "secure" => $isHttps
 ]);
 require_once __DIR__ . "/../config/db.php";
 require_once __DIR__ . "/../config/session_handler.php";

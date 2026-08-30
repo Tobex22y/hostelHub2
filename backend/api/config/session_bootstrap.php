@@ -26,12 +26,13 @@ require_once __DIR__ . "/session_handler.php";
 // NOTE: this means the cookie will NOT be set on plain http://localhost.
 // If you need local XAMPP testing over http, see the note at the
 // bottom of this file.
+$isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 session_set_cookie_params([
     "lifetime" => 0,
     "path"     => "/",
     "httponly" => true,
-    "samesite" => "None",
-    "secure"   => true,
+    "samesite" => $isHttps ? "None" : "Lax",
+    "secure"   => $isHttps,
 ]);
 
 // ── Use the database-backed session handler instead of the

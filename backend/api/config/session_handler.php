@@ -5,6 +5,11 @@ class DBSessionHandler implements SessionHandlerInterface {
     public function open($savePath, $sessionName): bool {
         try {
             $this->pdo = DB::get();
+            $this->pdo->exec("CREATE TABLE IF NOT EXISTS sessions (
+                id VARCHAR(128) NOT NULL PRIMARY KEY,
+                data BLOB NOT NULL,
+                last_access INT UNSIGNED NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             return true;
         } catch (Exception $e) {
             error_log("SESSION open() failed: " . $e->getMessage());
